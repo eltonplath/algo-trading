@@ -1,5 +1,19 @@
+# OpenClaw
 
-## Docker Build & Run
+OpenClaw now includes a lightweight runtime foundation under `openclaw/`:
+
+- `RuntimeConfig`: environment-driven runtime settings.
+- `EventBus`: in-process pub/sub for lifecycle and system events.
+- `ServiceContainer`: ordered service registry with startup rollback.
+- `OpenClawRuntime`: orchestration for config, services, and lifecycle events.
+
+## Run tests
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
+## Docker Build & Run (existing notebooks environment)
 
 ### Build my Python environment image
 `cd docker`
