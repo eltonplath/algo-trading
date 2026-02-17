@@ -10,7 +10,7 @@ OpenClaw now includes a lightweight runtime foundation under `openclaw/`:
 ## Run tests
 
 ```bash
-python -m unittest discover -s tests -v
+python3 -m unittest discover -s tests -v
 ```
 
 ## Docker Build & Run (existing notebooks environment)
