@@ -7,14 +7,20 @@ import javax.crypto.spec.SecretKeySpec
 
 object KrakenSigner {
 
+    /**
+     * Kraken spot REST: `API-Sign = HMAC-SHA512(path + SHA256(nonce + postData), base64_decode(secret))`.
+     * [nonce] must be the same string used as the `nonce` form field value.
+     */
     fun sign(
         path: String,
+        nonce: String,
         postData: String,
         apiSecretBase64: String
     ): String {
         val secret = Base64.decode(apiSecretBase64.trim(), Base64.DEFAULT)
         val sha256 = MessageDigest.getInstance("SHA-256")
-        val hash = sha256.digest(postData.toByteArray(Charsets.UTF_8))
+        val encoded = (nonce + postData).toByteArray(Charsets.UTF_8)
+        val hash = sha256.digest(encoded)
         val mac = Mac.getInstance("HmacSHA512")
         mac.init(SecretKeySpec(secret, "HmacSHA512"))
         val pathBytes = path.toByteArray(Charsets.UTF_8)

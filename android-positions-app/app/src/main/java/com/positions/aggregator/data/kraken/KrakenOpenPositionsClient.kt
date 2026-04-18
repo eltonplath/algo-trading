@@ -21,7 +21,7 @@ class KrakenOpenPositionsClient(
         val path = "/0/private/OpenPositions"
         val nonce = System.currentTimeMillis().toString()
         val postBody = "nonce=$nonce"
-        val sign = KrakenSigner.sign(path, postBody, apiSecret)
+        val sign = KrakenSigner.sign(path, nonce, postBody, apiSecret)
         val url = "https://api.kraken.com$path"
         val body = postBody.toRequestBody(FORM)
         val request = Request.Builder()
