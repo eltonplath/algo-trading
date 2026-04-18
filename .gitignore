@@ -1,3 +1,8 @@
 .DS_Store
 notebooks/.ipynb_checkpoints/
 
+android-positions-app/.gradle/
+android-positions-app/**/build/
+android-positions-app/local.properties
+android-positions-app/.idea/
+
