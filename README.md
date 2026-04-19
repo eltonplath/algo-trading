@@ -11,9 +11,21 @@ export ALGO_HOME=/Users/elton/dev/algo-trading
 `cd docker`
 `docker run -ti -p 8888:8888 -v "$ALGO_HOME/notebooks:/py4at" pyalgo:basic`
 
-## Android App: Portfolio Position Hub
+## Android apps (two implementations)
 
-An Android app was added under `android-app/` that aggregates open positions across:
+The repo contains **two** Android projects that solve the same problem (aggregate positions across eToro, Interactive Brokers, XTB, and Kraken). Pick one to maintain going forward, or keep both if you want the alternate UI/architecture.
+
+### 1) `android-positions-app/` — encrypted credentials + Compose tabs
+
+- Package: `com.positions.aggregator`
+- Credentials: **EncryptedSharedPreferences** (AndroidX Security Crypto)
+- eToro: **Bearer token** + `x-request-id` against `https://public-api.etoro.com/api/v1/...` (demo vs real path)
+- IB / XTB / Kraken: same integration ideas as below; Kraken signing uses `SHA256(nonce + postData)` per Kraken’s spec
+- Includes Gradle wrapper: `./gradlew :app:assembleDebug` from `android-positions-app/`
+
+### 2) `android-app/` — “Portfolio Position Hub” (merged from `cursor/android-positions-aggregator-375b`)
+
+An Android app under `android-app/` that aggregates open positions across:
 
 - eToro
 - Interactive Brokers (Client Portal API)
@@ -44,7 +56,7 @@ Command line (if Android SDK is available):
 
 ```bash
 cd android-app
-./gradlew assembleDebug
+./gradlew :app:assembleDebug
 ```
 
 ### Broker-specific notes
@@ -59,8 +71,8 @@ cd android-app
 - **Kraken**: Uses private endpoint:
   - `/0/private/OpenPositions` with HMAC signature (`API-Key`, `API-Sign`).
 
-### Security note
+### Security note (`android-app/`)
 
 Credentials are persisted in the app's internal files directory for convenience.
-For production use, migrate credential storage to Android Keystore + encrypted storage.
+For production use, migrate credential storage to Android Keystore + encrypted storage (see `android-positions-app/` for an encrypted-storage approach).
 

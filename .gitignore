@@ -6,3 +6,8 @@ android-positions-app/**/build/
 android-positions-app/local.properties
 android-positions-app/.idea/
 
+android-app/.gradle/
+android-app/**/build/
+android-app/local.properties
+android-app/.idea/
+
