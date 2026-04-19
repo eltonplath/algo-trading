@@ -11,68 +11,23 @@ export ALGO_HOME=/Users/elton/dev/algo-trading
 `cd docker`
 `docker run -ti -p 8888:8888 -v "$ALGO_HOME/notebooks:/py4at" pyalgo:basic`
 
-## Android apps (two implementations)
+## Android app: multi-broker positions
 
-The repo contains **two** Android projects that solve the same problem (aggregate positions across eToro, Interactive Brokers, XTB, and Kraken). Pick one to maintain going forward, or keep both if you want the alternate UI/architecture.
+A single app lives under **`android-positions-app/`** (package `com.positions.aggregator`). It shows **open positions** from **eToro**, **Interactive Brokers** (Client Portal Web API), **XTB** (xAPI WebSocket), and **Kraken** (signed REST), with:
 
-### 1) `android-positions-app/` — encrypted credentials + Compose tabs
-
-- Package: `com.positions.aggregator`
-- Credentials: **EncryptedSharedPreferences** (AndroidX Security Crypto)
-- eToro: **Bearer token** + `x-request-id` against `https://public-api.etoro.com/api/v1/...` (demo vs real path)
-- IB / XTB / Kraken: same integration ideas as below; Kraken signing uses `SHA256(nonce + postData)` per Kraken’s spec
-- Includes Gradle wrapper: `./gradlew :app:assembleDebug` from `android-positions-app/`
-
-### 2) `android-app/` — “Portfolio Position Hub” (merged from `cursor/android-positions-aggregator-375b`)
-
-An Android app under `android-app/` that aggregates open positions across:
-
-- eToro
-- Interactive Brokers (Client Portal API)
-- XTB (WebSocket API)
-- Kraken
-
-### What it does
-
-- Lets you configure connection credentials/endpoints for all four brokers.
-- Fetches broker positions in parallel.
-- Normalizes the results into a single model and shows:
-  - symbol
-  - direction (long/short)
-  - quantity
-  - average open price
-  - mark price (if available)
-  - unrealized PnL (if available)
-- Provides a summary card (open count, total unrealized PnL, approximate exposure).
-- Stores config locally in app internal storage.
+- **Connector + repository** layout for each broker
+- **Summary** card (count, unrealized PnL, approximate notional exposure)
+- **Encrypted** credential storage (`SecureConfigStore` + AndroidX Security Crypto), with automatic migration from older plain JSON or legacy encrypted prefs if present
 
 ### Build
 
-1. Open `android-app/` in Android Studio Hedgehog+ (or newer).
-2. Let Gradle sync.
-3. Run on emulator/device (API 26+).
+1. Open **`android-positions-app/`** in Android Studio (SDK 34+).
+2. Set `sdk.dir` in `local.properties` or `ANDROID_HOME`.
+3. Run `./gradlew :app:assembleDebug` or install from the IDE.
 
-Command line (if Android SDK is available):
+### Broker notes
 
-```bash
-cd android-app
-./gradlew :app:assembleDebug
-```
-
-### Broker-specific notes
-
-- **eToro**: Uses `GET /api/v1/trading/info/portfolio` with required headers (`x-api-key`, `x-user-key`, `x-request-id`).
-  - This typically requires eToro partner API access.
-- **Interactive Brokers**: Uses Client Portal endpoint:
-  - `/portfolio/{accountId}/positions/0`
-  - Base URL defaults to `https://localhost:5000/v1/api`.
-- **XTB**: Uses websocket flow:
-  - `login` then `getTrades(openedOnly=true)`.
-- **Kraken**: Uses private endpoint:
-  - `/0/private/OpenPositions` with HMAC signature (`API-Key`, `API-Sign`).
-
-### Security note (`android-app/`)
-
-Credentials are persisted in the app's internal files directory for convenience.
-For production use, migrate credential storage to Android Keystore + encrypted storage (see `android-positions-app/` for an encrypted-storage approach).
-
+- **eToro**: Default is **Public API** bearer token against `https://public-api.etoro.com` (`/trading/info/real|demo/pnl`). Optional **partner API** mode uses `x-api-key` + `x-user-key` and your chosen base URL + `/api/v1/trading/info/portfolio`.
+- **IBKR**: Uses `/portfolio/accounts` when Account ID is left blank (then pages positions per account). Optional session header/cookie.
+- **XTB**: Configurable WebSocket URL (demo `wss://ws.xtb.com/demo` or real `wss://ws.xtb.com/real`).
+- **Kraken**: `OpenPositions` with correct `API-Sign` (`SHA256(nonce + postData)`).
